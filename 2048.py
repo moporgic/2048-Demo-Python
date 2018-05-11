@@ -27,14 +27,15 @@ class board:
     def left(self):
         move, score = board([]), 0
         for row in [self.tile[r:r + 4] for r in range(0, 16, 4)]:
-            buf = [t for t in row if t] + [0] * row.count(0)
-            while buf:
-                if buf[0] and len(buf) > 1 and buf[0] == buf[1]:
+            buf = sorted(row, key = lambda t: not t) + [0]
+            while buf[0]:
+                if buf[0] == buf[1]:
                     buf = buf[1:] + [0]
                     buf[0] += 1
                     score += 1 << buf[0]
                 move.tile += [buf[0]]
                 buf = buf[1:]
+            move.tile += buf[1:]
         return move, score if move.tile != self.tile else -1
     
     def right(self):
@@ -76,5 +77,4 @@ if __name__ == '__main__':
         score += reward
         step += 1
         print()
-    
     
