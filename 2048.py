@@ -1,7 +1,7 @@
 # Simple 2048 Puzzle Game (Demo)
 # Basic framework for developing 2048 programs in Python
 # Author: Hung Guei (moporgic)
-# Date: May 10, 2018
+# Date: May 12, 2018
 
 import random
 
@@ -9,36 +9,32 @@ class board:
     """simple implementation of 2048 puzzle"""
     
     def __init__(self, tile = None):
-        if tile == None:
-            tile = [0] * 16
-        self.tile = tile
-        
+        self.tile = tile if tile is not None else [0] * 16
+    
     def __str__(self):
         state = '+' + '-' * 24 + '+\n'
-        for row in [slice(i, i + 4) for i in range(0, 16, 4)]:
-            state += ('|' + ''.join('{0:6d}'.format((1 << t) & -2) for t in self.tile[row]) + '|\n')
+        for row in [self.tile[r:r + 4] for r in range(0, 16, 4)]:
+            state += ('|' + ''.join('{0:6d}'.format((1 << t) & -2) for t in row) + '|\n')
         state += '+' + '-' * 24 + '+'
         return state
     
     def mirror(self):
-        return board([self.tile[row + 3 - i] for row in range(0, 16, 4) for i in range(4)])
+        return board([self.tile[r + i] for r in range(0, 16, 4) for i in reversed(range(4))])
     
     def transpose(self):
-        return board([self.tile[row + i] for i in range(4) for row in range(0, 16, 4)])
+        return board([self.tile[r + i] for i in range(4) for r in range(0, 16, 4)])
     
     def left(self):
         move, score = board([]), 0
-        for row in [slice(i, i + 4) for i in range(0, 16, 4)]:
-            buf = [t for t in self.tile[row] if t != 0]
-            while len(buf) > 1:
-                if buf[0] == buf[1]:
-                    buf = buf[1:]
+        for row in [self.tile[r:r + 4] for r in range(0, 16, 4)]:
+            buf = [t for t in row if t] + [0] * row.count(0)
+            while buf:
+                if buf[0] and len(buf) > 1 and buf[0] == buf[1]:
+                    buf = buf[1:] + [0]
                     buf[0] += 1
                     score += 1 << buf[0]
                 move.tile += [buf[0]]
                 buf = buf[1:]
-            move.tile += buf
-            move.tile += [0] * (row.stop - len(move.tile))
         return move, score if move.tile != self.tile else -1
     
     def right(self):
@@ -54,17 +50,17 @@ class board:
         return move.transpose(), score
     
     def popup(self):
-        added = self.tile[:]
-        empty = [pos for pos in range(16) if added[pos] == 0]
-        added[random.choice(empty)] = random.choice([1] * 9 + [2])
-        return board(added)
+        tile = self.tile[:]
+        empty = [i for i, t in enumerate(tile) if not t]
+        tile[random.choice(empty)] = random.choice([1] * 9 + [2])
+        return board(tile)
     
 if __name__ == '__main__':
     print('2048 Demo\n')
+    
     state = board().popup().popup()
     score = 0
     step = 0
-    
     while True:
         print('#{} [{}]'.format(step, score))
         print(state)
@@ -73,11 +69,12 @@ if __name__ == '__main__':
         for label, move in zip(['up', 'right', 'down', 'left'], moves):
             print('{} = {}'.format(label, move[1]))
                      
-        after, reward = max(moves, key = lambda move : move[1])
+        after, reward = max(moves, key = lambda move: move[1])
         if reward == -1:
             break
         state = after.popup()
         score += reward
         step += 1
         print()
-        
+    
+    
