@@ -64,11 +64,11 @@ if __name__ == '__main__':
     while True:
         print('#{} [{}]'.format(step, score))
         print(state)
-                
+        
         moves = [state.up(), state.right(), state.down(), state.left()]
         for label, move in zip(['up', 'right', 'down', 'left'], moves):
             print('{} = {}'.format(label, move[1]))
-                     
+        
         after, reward = max(moves, key = lambda move: move[1])
         if reward == -1:
             break
